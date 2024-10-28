@@ -7,9 +7,11 @@ For the program to work, it needs an input directory and an output directory, wh
 So yes, the program can only back up one folder (and its files & subfolders), although support to back up multiple folders can be added in the future.
 
 To schedule the backup procedure, again, **on Windows**, just run ``scheduler.jar`` and you will be greeted with this interface:
+
 ![image](https://github.com/user-attachments/assets/89eb75e1-0961-44d7-9d52-920b49faa597)
 
 If the **WEEKLY** or **MONTHLY** option is chosen, the user can enter the **day of the week (Monday-Sunday)** during which the backup task will run.
+
 ![image](https://github.com/user-attachments/assets/ef53a4e0-39da-4f0e-95b8-72619dee20fc)
 
 As for the **Backup Frequency**, that represents how often your files will be backed up.
