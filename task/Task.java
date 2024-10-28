@@ -8,6 +8,11 @@ public class Task
 {
 	private static final String TOOL_TITLE = "backup.jar";
 	private static final String[] WEEKDAYS = {"MON","TUE","WED","THU","FRI","SAT","SUN"};
+	//temporary solution - I could borrow some code from my Accurate File Finder and just have it search for any javaw.exe file
+	private static final String[] JAVA_EXE_PATHS =
+	{"C:\\Program Files (x86)\\Java\\latest\\jre-1.8\\bin\\javaw.exe",
+	"C:\\Program Files\\Java\\jre-1.8\\bin\\javaw.exe",
+	"C:\\ProgramData\\Oracle\\Java\\javapath\\javaw.exe"};
 	static int bakFreq=1, weekday=0;
 	static int[] startTimeOptions = {0,0,0};
 	static String schedType="";
@@ -37,7 +42,17 @@ public class Task
 		{
 			try
 			{
-				String javaExe = "C:\\ProgramData\\Oracle\\Java\\javapath\\java.exe";
+				//check possible java exe paths
+				String finalJavaPath=null;
+				for (int i=0; i<JAVA_EXE_PATHS.length; i++)
+				{
+					File javaExeRef = new File(JAVA_EXE_PATHS[i]);
+					if (javaExeRef.exists())
+					{
+						finalJavaPath = JAVA_EXE_PATHS[i]; break;
+					}
+				}
+				String javaExe = '"'+finalJavaPath+'"';
 				String currDir = new File(".").getCanonicalPath();
 				String schedJar = currDir+'\\'+TOOL_TITLE;
 				String command = javaExe+" -jar"+' '+schedJar;

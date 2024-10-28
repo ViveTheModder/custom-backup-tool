@@ -1,6 +1,7 @@
 package cmd;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
@@ -10,7 +11,7 @@ import java.util.Scanner;
 public class Main 
 {
 	private static File[] dirsArray = new File[2];
-	private static final String TIME_FORMAT = "dd-MM-yy hh-mm-ss";
+	private static final String TIME_FORMAT = "dd-MM-yy-hh-mm-ss";
 	static long bytes=0, files=0, folders=0;
 	static String currPath, errorMsg;
 	public static boolean isDirsFileValid(File dirs)
@@ -90,6 +91,7 @@ public class Main
 	{
 		if (src.isDirectory())
 		{
+			dst.mkdirs(); //make folders and subfolders in case source has them
 			folders++;
 			//check for subfolders
 			String[] list = src.list();
@@ -99,24 +101,55 @@ public class Main
 				{
 					File newSrc = new File(src,name);
 					File newDst = new File(dst,name);
-					backup(newSrc,newDst);
+					if (Files.isReadable(src.toPath())) backup(newSrc,newDst);
 				}
 			}
 		}
 		else if (src.isFile()) //copy files
 		{
 			files++; bytes+=src.length();
-			//copyFilesViaRAF(); I wrote this for fun, knowing how painfully slow it is
 			currPath = src.toPath().toString();
 			MsgBox.label.setText(MsgBox.HTML_TEXT+"Working on:<br>"+currPath);
-			dst.mkdirs(); //make folders and subfolders in case source has them
 			try 
 			{
-				Files.copy(src.toPath(), new File(dst, src.getName()).toPath());
+				dst.getParentFile().mkdirs(); //I put this just to be 100% sure
+				boolean canBeRenamed = src.renameTo(src);
+				if (!canBeRenamed) //and here is a cheap way of checking if a file is in use or not
+				{
+					String os = System.getProperty("os.name");
+					if (os.contains("Win"))
+					{
+						String srcFileName = src.getName();
+						String srcFolder = src.toPath().toString().replace(srcFileName, "");
+						String dstFolder = dst.toPath().toString().replace(srcFileName, "");
+						//remove slashes at end of folder name via regex
+						srcFolder = srcFolder.replaceFirst(".$","");
+						dstFolder = dstFolder.replaceFirst(".$", "");
+						//add quotes before and after
+						srcFileName='"'+srcFileName+'"';
+						srcFolder='"'+srcFolder+'"'; dstFolder='"'+dstFolder+'"';
+						//execute robocopy command
+						ProcessBuilder builder = new ProcessBuilder("robocopy",srcFolder,dstFolder,srcFileName);
+						builder.redirectErrorStream(true); //actual life saver
+						Process proc = builder.start();
+						proc.waitFor();
+					}
+				}
+				else Files.copy(src.toPath(), dst.toPath());
 			} 
-			catch (IOException | SecurityException e) 
+			catch (IOException | SecurityException | InterruptedException e) 
 			{
-				MsgBox.setMsgBoxError("Exception of "+e.getCause()+" type occured!"); return;
+				//I wrote this because I find it far more favorable than e.printStackTrace();
+				File errorLog = new File("errors.log");
+				try {
+					FileWriter logWriter = new FileWriter(errorLog,true);
+					if (errorLog.exists()) errorLog.delete();
+					logWriter.append(e.getMessage());
+					logWriter.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+				
 			}
 		}
 		MsgBox.resultsLabel.setText(MsgBox.HTML_TEXT+"Files: "+files+"<br>Folders: "+folders+"<br>Size: "+Main.getSizeInMultipleOfBytes());
@@ -129,7 +162,7 @@ public class Main
 		{
 			MsgBox.setMsgBox();
 			Date d = new Date();
-			String backupFolder = dirsArray[1]+"\\"+dirsArray[0].getName()+" BACKUP "+new SimpleDateFormat(TIME_FORMAT).format(d); 
+			String backupFolder = dirsArray[1]+"\\"+dirsArray[0].getName()+"-BACKUP-"+new SimpleDateFormat(TIME_FORMAT).format(d); 
 			dirsArray[1] = new File(backupFolder);
 			dirsArray[1].mkdir(); //make backup folder
 			long start = System.currentTimeMillis();
