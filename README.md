@@ -29,6 +29,16 @@ After the chosen backup options are validated, the user can open **Task Schedule
 
 In case they have entered options they no longer like, they can simply run ``scheduler.jar`` again and overwrite the previous task with a new one.
 
+Once ``backup.jar`` runs, it will show the following:
+* What file it is currently copying;
+* The time elapsed;
+* The number of files it has copied;
+* The number of folders it has copied;
+* The current file size of the backup.
+
+![image](https://github.com/user-attachments/assets/5ecb9202-42bc-450b-9e6f-92812ba47b37)
+![image](https://github.com/user-attachments/assets/ed1cf505-0b69-44a8-ad20-c5a9201fd27a)
+
 By the way, for the task to work as it should, I had to make the program create a ``scheduler.bat`` file, which is what the scheduler runs, and a ``task.bat`` file, which will actually run ``backup.jar`` in the right directory.
 
 Running it straight from Task Scheduler caused problems, because it assumed the ``dirs.txt`` was stored in ``C:\Windows\System32``... *sigh*.
