@@ -4,59 +4,64 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
 
 public class Main 
 {
-	private static File[] dirsArray = new File[2];
+	private static ArrayList<File> inputDirList = new ArrayList<File>();
+	private static File outputDir;
 	private static final String TIME_FORMAT = "dd-MM-yy-hh-mm-ss";
+	static boolean includeDateTime;
 	static long bytes=0, files=0, folders=0;
 	static String currPath, errorMsg;
 	public static boolean isDirsFileValid(File dirs)
 	{
-		String[] dirType = {"Input ","Output "};
+		boolean isInputDir=true;
+		String[] dirType = {"Input","Output"};
 		Scanner sc=null;
 		try 
 		{
 			sc = new Scanner(dirs);
-			for (int i=0; i<4; i++)
+			while (sc.hasNextLine())
 			{
-				if (sc.hasNextLine())
+				String input = sc.nextLine();
+				System.out.println(input);
+				File inputAsFile = new File(input);
+				//check if input is directory
+				if (inputAsFile.isDirectory())
 				{
-					String input = sc.nextLine();
-					if (i%2==0)
-					{
-						if (!input.contains(dirType[i/2]+"Directory")) 
-						{
-							errorMsg="Invalid format! dirs.txt must contain 1 input directory & 1 output directory."; 
-							sc.close(); return false;
-						}
-					}
-					else
-					{
-						File dir = new File(input);
-						if (!dir.isDirectory()) 
-						{
-							errorMsg="Invalid directories found in dirs.txt!"; 
-							sc.close(); return false;
-						}
-						if (i==1) dirsArray[0]=dir;
-						if (i==3) dirsArray[1]=dir;
-					}
+					//check for input directories
+					if (isInputDir) inputDirList.add(inputAsFile);
+					//check for output directory
+					else outputDir=inputAsFile;
 				}
 				else
 				{
-					errorMsg="Invalid format! dirs.txt must contain exactly 4 lines of text, where even ones must be directories."; 
-					sc.close(); return false;
+					//check if input specifies type of directory or option
+					if (input.contains(dirType[0])) isInputDir=true;
+					else if (input.contains(dirType[1])) isInputDir=false;
+					else if (input.startsWith("Include Date & Time in Backup Folder:"))
+					{
+						if (input.endsWith("No")) includeDateTime=false;
+						else if (input.endsWith("Yes")) includeDateTime=true;
+						else 
+						{
+							errorMsg="Date & Time in Backup Folder option has not been specified properly!";
+							sc.close(); return false;
+						}
+					}
 				}
+				
 			}
-			sc.close();
+			sc.close(); 
 		} 
 		catch (FileNotFoundException e) 
 		{
-			errorMsg="dirs.txt is missing!"; return false;		
+			errorMsg="Missing directories!"; return false;		
 		}
 		return true;
 	}
@@ -87,8 +92,9 @@ public class Main
 		if (bytes>=1024) return String.format("%.3f", newSize)+unit;
 		else return bytes+unit;
 	}
-	public static void backup(File src, File dst)
+	public static void backup(File src, File dst) throws IOException
 	{
+		if (src.equals(dst)) return; //avoid infinite recursion in accidental cases
 		if (src.isDirectory())
 		{
 			dst.mkdirs(); //make folders and subfolders in case source has them
@@ -101,7 +107,7 @@ public class Main
 				{
 					File newSrc = new File(src,name);
 					File newDst = new File(dst,name);
-					if (Files.isReadable(src.toPath())) backup(newSrc,newDst);
+					backup(newSrc,newDst);
 				}
 			}
 		}
@@ -135,7 +141,7 @@ public class Main
 						proc.waitFor();
 					}
 				}
-				else Files.copy(src.toPath(), dst.toPath());
+				else Files.copy(src.toPath(), dst.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
 			} 
 			catch (IOException | SecurityException | InterruptedException e) 
 			{
@@ -143,13 +149,11 @@ public class Main
 				File errorLog = new File("errors.log");
 				try {
 					FileWriter logWriter = new FileWriter(errorLog,true);
-					if (errorLog.exists()) errorLog.delete();
-					logWriter.append(e.getMessage());
+					logWriter.append(new SimpleDateFormat(TIME_FORMAT).format(new Date())+":\n"+e.getMessage());
 					logWriter.close();
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
-				
 			}
 		}
 		MsgBox.resultsLabel.setText(MsgBox.HTML_TEXT+"Files: "+files+"<br>Folders: "+folders+"<br>Size: "+Main.getSizeInMultipleOfBytes());
@@ -162,11 +166,15 @@ public class Main
 		{
 			MsgBox.setMsgBox();
 			Date d = new Date();
-			String backupFolder = dirsArray[1]+"\\"+dirsArray[0].getName()+"-BACKUP-"+new SimpleDateFormat(TIME_FORMAT).format(d); 
-			dirsArray[1] = new File(backupFolder);
-			dirsArray[1].mkdir(); //make backup folder
 			long start = System.currentTimeMillis();
-			backup(dirsArray[0],dirsArray[1]);
+			for (File inputDir: inputDirList)
+			{
+				String backupFolder = outputDir+"\\"+inputDir.getName()+"-BACKUP";
+				if (includeDateTime) backupFolder+='-'+new SimpleDateFormat(TIME_FORMAT).format(d);
+				File newOutputDir = new File(backupFolder);
+				newOutputDir.mkdir(); //make backup folder
+				backup(inputDir,newOutputDir);
+			}
 			long finish = System.currentTimeMillis();
 			double time = (finish-start)/(double)1000;
 			MsgBox.frame.setVisible(false);

@@ -53,8 +53,8 @@ public class MsgBox
 	public static void setMsgBoxSuccess(double time)
 	{
 		String timeString=null; 
-		if (seconds>=3600) timeString=String.format("%d hours, %d minutes and %.3f seconds", (int)time/3600, (int)(time/60)%60, time);
-		else if (seconds>=60) timeString=String.format("%d minutes and %.3f seconds", (int)time%60, time);
+		if (seconds>=3600) timeString=String.format("%d hour(s), %d minute(s) and %.3f second(s)", (int)time/3600, (int)(time/60)%60, time%60);
+		else if (seconds>=60) timeString=String.format("%d minute(s) and %.3f second(s)", (int)time/60, time%60);
 		else timeString=String.format("%.3f seconds", time);
 		String results=HTML_TEXT+Main.files+" files & "+Main.folders+" folders worth "+
 		Main.getSizeInMultipleOfBytes()+" backed up successfully in "+timeString+"!";
