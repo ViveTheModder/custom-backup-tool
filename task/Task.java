@@ -1,17 +1,21 @@
 package task;
+import java.awt.Desktop;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import javax.swing.JOptionPane;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class Task 
 {
-	private static final String JAVA_EXE_PATH = "start /b javaw.exe";
+	private static final String OS = System.getProperty("os.name");
 	private static final String TOOL_TITLE = "backup.jar";
 	private static final String[] WEEKDAYS = {"MON","TUE","WED","THU","FRI","SAT","SUN"};
+	static boolean[] cronEntryFlags = new boolean[5];
 	static int bakFreq=1, weekday=0;
 	static int[] startTimeOptions = {0,0,0};
 	static String schedType="";
+	static String[] cronEntries = new String[5];
 	public static void makeBatchFile(String task, String command, String currDir) throws IOException
 	{
 		File batch = new File(currDir+"\\config\\scheduler.bat");
@@ -31,14 +35,25 @@ public class Task
 		Process proc = builder.start();
 		proc.waitFor();
 	}
+	public static void setErrorsLog(Exception e)
+	{
+		final String TIME_FORMAT = "dd-MM-yy-hh-mm-ss";
+		File errorLog = new File("errors.log");
+		try {
+			FileWriter logWriter = new FileWriter(errorLog,true);
+			logWriter.append(new SimpleDateFormat(TIME_FORMAT).format(new Date())+":\n"+e.getMessage()+"\n");
+			logWriter.close();
+			Desktop.getDesktop().open(errorLog);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+	}
 	public static void setScheduledTask()
 	{
-		String os = System.getProperty("os.name");
-		if (os.contains("Win"))
+		if (OS.contains("Win"))
 		{
-			try
-			{
-				String finalJavaPath = JAVA_EXE_PATH;
+			try {
+				String finalJavaPath = "start /b javaw.exe";
 				String currDir = new File(".").getCanonicalPath();
 				String schedJar = currDir+'\\'+TOOL_TITLE;
 				String command = finalJavaPath+" -jar"+' '+schedJar;
@@ -60,12 +75,29 @@ public class Task
 				makeBatchFile(task,command,currDir);
 				runBatchFile(currDir);
 			}
-			catch (IOException | InterruptedException e)
-			{
-				System.out.println("Exception of "+e.getCause()+" type occured!"); return;
+			catch (IOException | InterruptedException e) {
+				setErrorsLog(e);
 			}
 		}
-		else if (os.contains("nix") || os.contains("nux") || os.contains("aix")) //TODO: add Unix code
-			JOptionPane.showMessageDialog(null, Scheduler.HTML_TEXT+"Unix support has not been added yet!", Scheduler.WINDOW_TITLE, JOptionPane.ERROR_MESSAGE);
+		else if (OS.contains("nix") || OS.contains("nux") || OS.contains("aix"))
+		{
+			try {
+				String finalJavaPath = "javaw.exe";
+				String currDir = new File(".").getCanonicalPath();
+				String schedJar = currDir+'\\'+TOOL_TITLE;
+				String command = finalJavaPath+" -jar"+' '+schedJar;
+				String task = '"'+""; //convert character to string
+				for (int i=0; i<cronEntries.length; i++)
+					task+=cronEntries[i]+" ";
+				task+=command+" | crontab -l"+'"';
+				System.out.println("Instruction: "+task);
+				ProcessBuilder builder = new ProcessBuilder("echo ",task);
+				Process proc = builder.start();
+				proc.waitFor();
+			} 
+			catch (IOException | InterruptedException e) {
+				setErrorsLog(e);
+			}
+		}
 	}
 }
