@@ -2,9 +2,11 @@
 A program in Java that makes backups (for all OS's) and schedules them (only on Windows atm).
 
 # Usage/Breakdown
-For the program to work, it needs an input directory and an output directory, which it takes from ``dirs.txt``, stored in the ``config`` folder.
+For the program to work, it needs at least one input directory and only one output directory, which it takes from ``dirs.txt``, stored in the ``config`` folder.
 
-So yes, the program can only back up one folder (and its files & subfolders), although support to back up multiple folders can be added in the future.
+So yes, the program can back up multiple folders (and their files & subfolders), as well as exclude other folders (specified as blacklisted directories).
+
+It can also exclude (for Windows only) hidden files and/or operating system files.
 
 To schedule the backup procedure, again, **on Windows**, just run ``scheduler.jar`` and you will be greeted with this interface:
 
