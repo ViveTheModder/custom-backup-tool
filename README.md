@@ -1,13 +1,15 @@
 # custom-backup-tool
-A program in Java that makes backups (for all OS's) and schedules them (only on Windows atm).
+A program in Java that makes backups and schedules them, for Windows and Unix.
+
+The user can customize what directories to include/exclude, as well as include/exclude hidden & Operating System files & folders (for Windows).
 
 # Usage/Breakdown
-For the program to work, it needs an input directory and an output directory, which it takes from ``dirs.txt``, stored in the ``config`` folder.
+For the program to work, it needs at least one input directory and one output directory, which it takes from ``dirs.txt``, stored in the ``config`` folder.
 
-So yes, the program can only back up one folder (and its files & subfolders), although support to back up multiple folders can be added in the future.
+To schedule the backup procedure, just run ``scheduler.jar`` (**on Unix, as superuser, from the terminal:** ``sudo java -jar scheduler.jar``) 
+and you will be greeted with this interface:
 
-To schedule the backup procedure, again, **on Windows**, just run ``scheduler.jar`` and you will be greeted with this interface:
-
+## Backup Scheduler on Windows
 ![image](https://github.com/user-attachments/assets/89eb75e1-0961-44d7-9d52-920b49faa597)
 
 If the **WEEKLY** or **MONTHLY** option is chosen, the user can enter the **day of the week (Monday-Sunday)** during which the backup task will run.
@@ -29,6 +31,9 @@ After the chosen backup options are validated, the user can open **Task Schedule
 
 In case they have entered options they no longer like, they can simply run ``scheduler.jar`` again and overwrite the previous task with a new one.
 
+## Backup Scheduler on Unix
+
+## Backup Procedure
 Once ``backup.jar`` runs, it will show the following:
 * What file it is currently copying;
 * The time elapsed;
@@ -38,7 +43,3 @@ Once ``backup.jar`` runs, it will show the following:
 
 ![image](https://github.com/user-attachments/assets/5ecb9202-42bc-450b-9e6f-92812ba47b37)
 ![image](https://github.com/user-attachments/assets/ed1cf505-0b69-44a8-ad20-c5a9201fd27a)
-
-By the way, for the task to work as it should, I had to make the program create a ``scheduler.bat`` file, which is what the scheduler runs, and a ``task.bat`` file, which will actually run ``backup.jar`` in the right directory.
-
-Running it straight from Task Scheduler caused problems, because it assumed the ``dirs.txt`` was stored in ``C:\Windows\System32``... *sigh*.

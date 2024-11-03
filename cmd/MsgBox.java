@@ -11,7 +11,7 @@ import javax.swing.Timer;
 public class MsgBox 
 {
 	private static long seconds=0;
-	static final String HTML_TEXT = "<html><div style='font-family: Segoe UI; text-align: center; font-size: 14px;'>";
+	static final String HTML_TEXT = "<html><div style='font-family: Tahoma, Geneva, sans-serif; text-align: center; font-size: 14px;'>";
 	private static final String WINDOW_TITLE = "Backup Progress Report";
 	static JFrame frame = new JFrame(WINDOW_TITLE);
 	static JLabel label, resultsLabel;

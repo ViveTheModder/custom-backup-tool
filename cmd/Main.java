@@ -184,7 +184,14 @@ public class Main
 	public static void main(String[] args) throws IOException 
 	{
 		String currWorkDir = new File(".").getCanonicalPath();
-		File dirs = new File(currWorkDir+"\\config\\dirs.txt");
+		File dirs=null;
+		if (OS.contains("win")) dirs = new File(currWorkDir+"\\config\\dirs.txt");
+		else if (OS.contains("nix") || OS.contains("nux") || OS.contains("aix")) dirs = new File(currWorkDir+"/config/dirs.txt");
+		else 
+		{
+			MsgBox.setMsgBoxError(MsgBox.HTML_TEXT+"Support has not been added yet for this OS ("+OS+")!");
+			System.exit(1);
+		}
 		if (isDirsFileValid(dirs)) 
 		{
 			MsgBox.setMsgBox();
@@ -196,6 +203,8 @@ public class Main
 				if (attrs.isHidden() && !optionFlags[1]) continue; //skip hidden directories
 				if (attrs.isSystem() && !optionFlags[2]) continue; //skip operating system directories
 				String backupFolder = outputDir+"\\"+inputDir.getName()+"-BACKUP";
+				if (OS.contains("nix") || OS.contains("nux") || OS.contains("aix"))
+					backupFolder = backupFolder.replace('\\', '/');
 				if (optionFlags[0]) backupFolder+='-'+new SimpleDateFormat(TIME_FORMAT).format(d);
 				File newOutputDir = new File(backupFolder);
 				newOutputDir.mkdir(); //make backup folder
