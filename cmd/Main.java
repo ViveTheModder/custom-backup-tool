@@ -185,7 +185,7 @@ public class Main
 	{
 		String currWorkDir = new File(".").getCanonicalPath();
 		File dirs=null;
-		if (OS.contains("win")) dirs = new File(currWorkDir+"\\config\\dirs.txt");
+		if (OS.contains("Win")) dirs = new File(currWorkDir+"\\config\\dirs.txt");
 		else if (OS.contains("nix") || OS.contains("nux") || OS.contains("aix")) dirs = new File(currWorkDir+"/config/dirs.txt");
 		else 
 		{
